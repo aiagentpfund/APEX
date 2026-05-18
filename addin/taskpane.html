@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APeX Capture</title>
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js" type="text/javascript"></script>
+<style>
+  :root{
+    --bg:#0f1117;--bg2:#161922;--bg3:#1e2230;--bg4:#252a3a;
+    --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+    --text:#e8eaf0;--text2:#8b909e;--text3:#555b6e;
+    --accent:#4f8ef7;--green:#3ecf8e;--amber:#f5a623;--red:#f04f5c;
+    --radius:8px;--font:'Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;padding:12px}
+  /* Header */
+  .logo{display:flex;align-items:baseline;gap:6px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+  .logo-text{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:0.04em}
+  .logo-text span{font-weight:300}
+  .logo-sub{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em}
+  /* Item preview */
+  .item-preview{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:14px}
+  .item-type-badge{display:inline-block;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;padding:2px 7px;border-radius:4px;margin-bottom:6px}
+  .badge-email{background:rgba(79,142,247,0.15);color:var(--accent)}
+  .badge-meeting{background:rgba(167,139,250,0.15);color:#a78bfa}
+  .item-subject{font-size:13px;font-weight:500;margin-bottom:4px;line-height:1.3}
+  .item-meta{font-size:11px;color:var(--text3);line-height:1.6}
+  /* Form */
+  .form-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;display:block}
+  .form-row{margin-bottom:12px}
+  select,textarea,input{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:border-color 0.15s}
+  select:focus,textarea:focus,input:focus{border-color:var(--accent)}
+  select option{background:var(--bg3)}
+  textarea{resize:vertical;min-height:70px;line-height:1.5}
+  /* PHI toggle */
+  .phi-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:12px;color:var(--text2);margin-bottom:12px}
+  .phi-row.phi-on{border-color:rgba(240,79,92,0.4);background:rgba(240,79,92,0.08);color:var(--red)}
+  .phi-box{width:15px;height:15px;border-radius:3px;border:1px solid var(--border2);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+  .phi-on .phi-box{background:var(--red);border-color:var(--red)}
+  /* Buttons */
+  .btn{display:block;width:100%;padding:10px;border-radius:var(--radius);border:none;font-size:13px;font-family:var(--font);cursor:pointer;font-weight:500;transition:all 0.15s;text-align:center}
+  .btn-primary{background:var(--accent);color:#fff;margin-bottom:8px}
+  .btn-primary:hover{background:#3a6fd4}
+  .btn-primary:disabled{background:var(--bg4);color:var(--text3);cursor:not-allowed}
+  .btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+  .btn-secondary:hover{background:var(--bg4);color:var(--text)}
+  /* Status messages */
+  .status{padding:10px 12px;border-radius:var(--radius);font-size:12px;margin-bottom:12px;display:none}
+  .status.show{display:block}
+  .status-success{background:rgba(62,207,142,0.1);border:1px solid rgba(62,207,142,0.3);color:var(--green)}
+  .status-error{background:rgba(240,79,92,0.1);border:1px solid rgba(240,79,92,0.3);color:var(--red)}
+  .status-info{background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.3);color:var(--accent)}
+  /* Initiative list */
+  .init-count{font-size:11px;color:var(--text3);margin-bottom:6px}
+  /* Divider */
+  .divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+  /* Open APeX link */
+  .open-apex{display:block;text-align:center;color:var(--accent);font-size:12px;text-decoration:none;padding:6px;border-radius:var(--radius);border:1px solid var(--border)}
+  .open-apex:hover{background:var(--bg2)}
+  /* Loading */
+  .loading{text-align:center;padding:24px;color:var(--text3)}
+  .spinner{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* Sections */
+  .section-title{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <div class="logo-text">AP<span>e</span>X</div>
+  <div class="logo-sub">Capture</div>
+</div>
+
+<div id="loading" class="loading">
+  <div class="spinner"></div>
+  <div>Reading item...</div>
+</div>
+
+<div id="main-content" style="display:none">
+
+  <!-- Item preview -->
+  <div class="item-preview" id="item-preview">
+    <div id="item-type-badge" class="item-type-badge badge-email">Email</div>
+    <div class="item-subject" id="item-subject">—</div>
+    <div class="item-meta" id="item-meta">—</div>
+  </div>
+
+  <div id="status-msg" class="status"></div>
+
+  <!-- Initiative selector -->
+  <div class="form-row">
+    <label class="form-label">Add to Initiative</label>
+    <div class="init-count" id="init-count"></div>
+    <select id="initiative-select">
+      <option value="">— Select an initiative —</option>
+    </select>
+  </div>
+
+  <!-- Artifact type -->
+  <div class="form-row">
+    <label class="form-label">Artifact Type</label>
+    <select id="artifact-type">
+      <option value="email">Email</option>
+      <option value="teams">Teams</option>
+      <option value="note">Note</option>
+      <option value="doc">Document</option>
+    </select>
+  </div>
+
+  <!-- Notes -->
+  <div class="form-row">
+    <label class="form-label">Additional Notes (optional)</label>
+    <textarea id="extra-notes" placeholder="Add any context or notes about this item..."></textarea>
+  </div>
+
+  <!-- PHI toggle -->
+  <div class="phi-row" id="phi-row" onclick="togglePhi()">
+    <div class="phi-box" id="phi-box"></div>
+    <span>🛡️ Contains PHI — exclude from AI summarization</span>
+  </div>
+
+  <!-- Send button -->
+  <button class="btn btn-primary" id="send-btn" onclick="sendToApex()">Send to APeX</button>
+  <button class="btn btn-secondary" onclick="refreshItem()">↺ Refresh Item</button>
+
+  <hr class="divider">
+  <a class="open-apex" href="https://aiagentpfund.github.io/APEX/" target="_blank">Open APeX ↗</a>
+
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const APEX_ORIGIN = 'https://aiagentpfund.github.io';
+const LS_KEY_INITIATIVES = 'apex_initiatives';
+const LS_KEY_SETTINGS = 'apex_settings';
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var currentItem = null;
+var phiChecked = false;
+var initiatives = [];
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+Office.onReady(function(info) {
+  if (info.host === Office.HostType.Outlook) {
+    loadInitiatives();
+    loadCurrentItem();
+  } else {
+    showStatus('error', 'This add-in requires Outlook.');
+  }
+});
+
+// ── LOAD INITIATIVES FROM APEX localStorage ───────────────────────────────────
+function loadInitiatives() {
+  try {
+    var raw = localStorage.getItem(LS_KEY_INITIATIVES);
+    initiatives = raw ? JSON.parse(raw) : [];
+    // Filter to active/paused/waiting/firm — not complete
+    var active = initiatives.filter(function(i) {
+      return i.status !== 'complete';
+    });
+    // Sort alphabetically
+    active.sort(function(a, b) { return a.name.localeCompare(b.name); });
+
+    var sel = document.getElementById('initiative-select');
+    sel.innerHTML = '<option value="">— Select an initiative —</option>';
+    active.forEach(function(init) {
+      var opt = document.createElement('option');
+      opt.value = init.id;
+      opt.textContent = init.name + (init.category ? ' (' + init.category + ')' : '');
+      sel.appendChild(opt);
+    });
+
+    var countEl = document.getElementById('init-count');
+    if (active.length === 0) {
+      countEl.textContent = 'No active initiatives found — create one in APeX first.';
+      countEl.style.color = 'var(--amber)';
+    } else {
+      countEl.textContent = active.length + ' active initiative' + (active.length !== 1 ? 's' : '') + ' available';
+    }
+
+    // Load PHI default from settings
+    var settingsRaw = localStorage.getItem(LS_KEY_SETTINGS);
+    if (settingsRaw) {
+      var settings = JSON.parse(settingsRaw);
+      if (settings.phiDefault) {
+        phiChecked = true;
+        document.getElementById('phi-row').classList.add('phi-on');
+        document.getElementById('phi-box').innerHTML = '✓';
+      }
+    }
+  } catch(e) {
+    showStatus('info', 'Could not load initiatives. Make sure you have visited APeX at least once in this browser.');
+  }
+}
+
+// ── LOAD CURRENT OUTLOOK ITEM ─────────────────────────────────────────────────
+function loadCurrentItem() {
+  var item = Office.context.mailbox.item;
+  if (!item) {
+    showStatus('error', 'No item selected.');
+    showMain();
+    return;
+  }
+
+  var isAppointment = item.itemType === Office.MailboxEnums.ItemType.Appointment;
+  document.getElementById('item-type-badge').textContent = isAppointment ? 'Meeting' : 'Email';
+  document.getElementById('item-type-badge').className = 'item-type-badge ' + (isAppointment ? 'badge-meeting' : 'badge-email');
+
+  if (isAppointment) {
+    document.getElementById('artifact-type').value = 'teams';
+  }
+
+  // Subject
+  var subject = item.subject || '(No subject)';
+  document.getElementById('item-subject').textContent = subject;
+
+  // Build meta and extract data async
+  var metaParts = [];
+  var itemData = {
+    type: isAppointment ? 'teams' : 'email',
+    subject: subject,
+    date: formatDate(item.dateTimeCreated || new Date()),
+    from: '',
+    participants: '',
+    body: '',
+    isAppointment: isAppointment
+  };
+
+  // Date
+  if (isAppointment && item.start) {
+    metaParts.push(formatDateTime(item.start));
+  } else if (item.dateTimeCreated) {
+    metaParts.push(formatDate(item.dateTimeCreated));
+  }
+
+  // From / Organizer
+  if (!isAppointment && item.from) {
+    var fromName = item.from.displayName || item.from.emailAddress || '';
+    metaParts.push('From: ' + fromName);
+    itemData.from = item.from.displayName
+      ? item.from.displayName + ' <' + item.from.emailAddress + '>'
+      : item.from.emailAddress;
+  }
+
+  if (isAppointment && item.organizer) {
+    var orgName = item.organizer.displayName || item.organizer.emailAddress || '';
+    metaParts.push('Organizer: ' + orgName);
+    itemData.from = orgName;
+  }
+
+  // To / Attendees
+  if (!isAppointment && item.to && item.to.length) {
+    var toNames = item.to.map(function(r) { return r.displayName || r.emailAddress; }).join(', ');
+    metaParts.push('To: ' + toNames);
+    itemData.participants = item.to.map(function(r) {
+      return r.displayName ? r.displayName + ' <' + r.emailAddress + '>' : r.emailAddress;
+    }).join(', ');
+  }
+
+  if (isAppointment && item.requiredAttendees && item.requiredAttendees.length) {
+    var attNames = item.requiredAttendees.map(function(r) { return r.displayName || r.emailAddress; }).join(', ');
+    metaParts.push('Attendees: ' + attNames);
+    itemData.participants = item.requiredAttendees.map(function(r) {
+      return r.displayName ? r.displayName + ' <' + r.emailAddress + '>' : r.emailAddress;
+    }).join(', ');
+  }
+
+  document.getElementById('item-meta').textContent = metaParts.join(' · ');
+
+  // Get body async
+  item.body.getAsync(Office.CoercionType.Text, function(result) {
+    if (result.status === Office.AsyncResultStatus.Succeeded) {
+      itemData.body = result.value.trim().slice(0, 2000); // cap at 2000 chars
+    }
+    currentItem = itemData;
+    showMain();
+  });
+}
+
+// ── SEND TO APEX ──────────────────────────────────────────────────────────────
+function sendToApex() {
+  var initId = document.getElementById('initiative-select').value;
+  if (!initId) {
+    showStatus('error', 'Please select an initiative.');
+    return;
+  }
+  if (!currentItem) {
+    showStatus('error', 'Item data not loaded yet. Please wait.');
+    return;
+  }
+
+  var artifactType = document.getElementById('artifact-type').value;
+  var extraNotes = document.getElementById('extra-notes').value.trim();
+
+  // Build the artifact
+  var artifact = {
+    id: uid(),
+    type: artifactType,
+    date: currentItem.date,
+    title: currentItem.subject,
+    content: currentItem.body + (extraNotes ? '\n\n--- Notes ---\n' + extraNotes : ''),
+    from: [currentItem.from, currentItem.participants].filter(Boolean).join('; '),
+    phi: phiChecked,
+    addedAt: new Date().toISOString(),
+    source: 'outlook-addin'
+  };
+
+  // Load fresh initiatives from localStorage
+  try {
+    var raw = localStorage.getItem(LS_KEY_INITIATIVES);
+    var inits = raw ? JSON.parse(raw) : [];
+    var init = inits.find(function(i) { return i.id === initId; });
+
+    if (!init) {
+      showStatus('error', 'Initiative not found. It may have been archived.');
+      return;
+    }
+
+    if (!init.artifacts) init.artifacts = [];
+    init.artifacts.push(artifact);
+    init.updatedAt = new Date().toISOString();
+
+    localStorage.setItem(LS_KEY_INITIATIVES, JSON.stringify(inits));
+
+    var initName = init.name;
+    showStatus('success', '✓ Artifact added to "' + initName + '"');
+
+    // Disable send button to prevent double-send
+    var btn = document.getElementById('send-btn');
+    btn.textContent = '✓ Sent to APeX';
+    btn.disabled = true;
+
+    // Clear notes
+    document.getElementById('extra-notes').value = '';
+
+  } catch(e) {
+    showStatus('error', 'Error saving to APeX: ' + e.message);
+  }
+}
+
+// ── UI HELPERS ────────────────────────────────────────────────────────────────
+function showMain() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('main-content').style.display = 'block';
+}
+
+function showStatus(type, msg) {
+  var el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className = 'status show status-' + type;
+  if (type === 'success') {
+    setTimeout(function() { el.classList.remove('show'); }, 4000);
+  }
+}
+
+function togglePhi() {
+  phiChecked = !phiChecked;
+  document.getElementById('phi-row').classList.toggle('phi-on', phiChecked);
+  document.getElementById('phi-box').innerHTML = phiChecked ? '✓' : '';
+}
+
+function refreshItem() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('main-content').style.display = 'none';
+  document.getElementById('status-msg').className = 'status';
+  var btn = document.getElementById('send-btn');
+  btn.textContent = 'Send to APeX';
+  btn.disabled = false;
+  loadInitiatives();
+  loadCurrentItem();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  var dt = new Date(d);
+  return dt.toISOString().split('T')[0];
+}
+
+function formatDateTime(d) {
+  if (!d) return '';
+  var dt = new Date(d);
+  return dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+</script>
+</body>
+</html>
